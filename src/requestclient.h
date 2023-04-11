@@ -1,5 +1,5 @@
-#ifndef SIDELED_H_ /* Include guard */
-#define SIDELED_H_
+#ifndef REQUESTCLIENT_H_ /* Include guard */
+#define REQUESTCLIENT_H_
 
 #include <Arduino.h>
 #include <M5Core2.h>

@@ -3,6 +3,18 @@
 // Labels
 lv_obj_t *label_distance_mm;
 lv_obj_t *label_car_detected;
+lv_obj_t *label_free_spot_count;
+lv_obj_t *label_free_spot_direction;
+
+// At this point I gave up
+char *free_spot_count_0 = "Number of free parking sports: 0";
+char *free_spot_count_1 = "Number of free parking sports: 1";
+char *free_spot_count_2 = "Number of free parking sports: 2";
+
+char *free_spot_direction_none = "No free parking spots :(";
+char *free_spot_direction_left = "Next free parking spot: <--";
+char *free_spot_direction_right = "Next free parking spot: -->";
+char *free_spot_direction_both = "Next free parking spot: <-->";
 
 bool my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 {
@@ -22,7 +34,6 @@ bool my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
         data->point.y = pos.y;
     }
     return false;
-    // Return `false` because we are not buffering and no more data to read
 }
 
 void set_up_buttons(lv_obj_t *tab1)
@@ -40,29 +51,6 @@ void set_up_buttons(lv_obj_t *tab1)
     static lv_anim_path_t path_ease_in_out;
     lv_anim_path_init(&path_ease_in_out);
     lv_anim_path_set_cb(&path_ease_in_out, lv_anim_path_ease_in_out);
-
-    //-------------------------------------------------------------------
-    /*Gum-like button*/
-    static lv_style_t style_gum;
-    lv_style_init(&style_gum);
-    lv_style_set_transform_width(&style_gum, LV_STATE_PRESSED, 10);
-    lv_style_set_transform_height(&style_gum, LV_STATE_PRESSED, -10);
-    lv_style_set_value_letter_space(&style_gum, LV_STATE_PRESSED, 5);
-    lv_style_set_transition_path(&style_gum, LV_STATE_DEFAULT, &path_overshoot);
-    lv_style_set_transition_path(&style_gum, LV_STATE_PRESSED, &path_ease_in_out);
-    lv_style_set_transition_time(&style_gum, LV_STATE_DEFAULT, 250);
-    lv_style_set_transition_delay(&style_gum, LV_STATE_DEFAULT, 100);
-    lv_style_set_transition_prop_1(&style_gum, LV_STATE_DEFAULT, LV_STYLE_TRANSFORM_WIDTH);
-    lv_style_set_transition_prop_2(&style_gum, LV_STATE_DEFAULT, LV_STYLE_TRANSFORM_HEIGHT);
-    lv_style_set_transition_prop_3(&style_gum, LV_STATE_DEFAULT, LV_STYLE_VALUE_LETTER_SPACE);
-
-    lv_obj_t *btn1 = lv_btn_create(tab1, NULL);
-    lv_obj_align(btn1, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -15, -15);
-    lv_obj_add_style(btn1, LV_BTN_PART_MAIN, &style_gum);
-
-    //-------------------------------------------------------------------
-    /*Instead of creating a label add a values string*/
-    lv_obj_set_style_local_value_str(btn1, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, "Gum");
 }
 
 void set_up_labels(lv_obj_t *tab1)
@@ -90,4 +78,39 @@ void set_up_labels(lv_obj_t *tab1)
     lv_label_set_long_mode(label_car_detected, LV_LABEL_LONG_EXPAND);
 
     lv_obj_align(label_car_detected, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 25);
+
+    // Label 3: Car detection label
+    label_free_spot_count = lv_label_create(tab1, NULL);
+    lv_label_set_text(label_free_spot_count, free_spot_count_0);
+    lv_label_set_align(label_free_spot_count, LV_LABEL_ALIGN_CENTER);
+    lv_label_set_long_mode(label_free_spot_count, LV_LABEL_LONG_EXPAND);
+
+    lv_obj_align(label_free_spot_count, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 40);
+
+    // Label 5: Free spot direction label
+    label_free_spot_direction = lv_label_create(tab1, NULL);
+    lv_label_set_text(label_free_spot_direction, free_spot_direction_none);
+    lv_label_set_align(label_free_spot_direction, LV_LABEL_ALIGN_CENTER);
+    lv_label_set_long_mode(label_free_spot_direction, LV_LABEL_LONG_EXPAND);
+
+    lv_obj_align(label_free_spot_direction, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 55);
+}
+
+void set_spots_text(int n_free_spots, bool free_spot_is_left)
+{
+    if (n_free_spots == 0)
+    {
+        lv_label_set_text(label_free_spot_count, free_spot_count_0);
+        lv_label_set_text(label_free_spot_direction, free_spot_direction_none);
+    }
+    else if (n_free_spots == 1)
+    {
+        lv_label_set_text(label_free_spot_count, free_spot_count_1);
+        lv_label_set_text(label_free_spot_direction, free_spot_is_left ? free_spot_direction_left : free_spot_direction_right);
+    }
+    else if (n_free_spots == 2)
+    {
+        lv_label_set_text(label_free_spot_count, free_spot_count_2);
+        lv_label_set_text(label_free_spot_direction, free_spot_direction_both);
+    }
 }

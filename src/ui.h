@@ -1,5 +1,5 @@
-#ifndef SIDELED_H_ /* Include guard */
-#define SIDELED_H_
+#ifndef UI_H_
+#define UI_H_
 
 #define SIDELED_NUM_LEDS 10
 #define SIDELED_DATA_PIN 25
@@ -23,6 +23,8 @@
 
 extern lv_obj_t *label_distance_mm;
 extern lv_obj_t *label_car_detected;
+extern lv_obj_t *label_free_spot_count;
+extern lv_obj_t *label_free_spot_direction;
 
 bool my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data);
 
@@ -30,4 +32,6 @@ void set_up_buttons(lv_obj_t *tab1);
 
 void set_up_labels(lv_obj_t *tab1);
 
-#endif /* SIDELED_H_ */
+void set_spots_text(int n_free_spots, bool free_spot_is_left);
+
+#endif

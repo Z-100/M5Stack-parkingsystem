@@ -4,8 +4,9 @@
 //==================================================
 
 #include "ui.h"
-#include "setup.h"
+#include "setup_display.h"
 #include "requestclient.h"
+#include "application_state.h"
 
 // Sensors
 VL53L0X sensor;
@@ -15,11 +16,13 @@ static lv_disp_buf_t disp_buf;
 static lv_color_t buf[LV_HOR_RES_MAX * 10];
 uint32_t startTime, frame = 0; // For frames-per-second estimate
 
-bool isTopM5Stack = false;
+
+//TODO Move to application state
+bool isTopM5Stack = true;
 long nextSensorRead = 0;
 
-void setup()
-{
+
+void setup() {
 	set_up_m5stack_defaults();
 
 	Wire.begin();
@@ -27,15 +30,10 @@ void setup()
 
 	// Program should not continue
 	// if no sensor was detected
-	if (!sensor.init())
-	{
+	if (!sensor.init()) {
 		Serial.println("Failed to detect and initialize sensor!");
-		while (1)
-		{
-		}
-	}
-	else
-	{
+		while (1) {}
+	} else {
 		sensor.startContinuous();
 	}
 
@@ -76,55 +74,45 @@ void setup()
 	set_up_labels(tab1);
 }
 
-void loop_for_top_sensor(long *millimeter_distance)
-{
-	if (millimeter_distance < 44L)
-	{
-		lv_label_set_text(label_car_detected, "Car detected");
-		send_park_state(true, 1);
-	}
-	else
-	{
-		lv_label_set_text(label_car_detected, "No car detected");
-		send_park_state(false, 1);
+void loop_for_top_sensor(long millimeter_distance) {
+
+	if (millimeter_distance < 44L) {
+		set_spots_text(numOfSpotsOccupied(), true);1
+		switchLeftSpotOccupied();
+	} else {
+		set_spots_text(numOfSpotsOccupied(), false);
+		switchLeftSpotOccupied();
 	}
 }
 
-void loop_for_side_sensor(unsigned long *millimeter_distance)
-{
-		if (millimeter_distance < 44L)
-	{
-		lv_label_set_text(label_car_detected, "Car detected");
-		send_park_state(true, 2);
-	}
-	else
-	{
-		lv_label_set_text(label_car_detected, "No car detected");
-		send_park_state(false, 2);
+void loop_for_side_sensor(long millimeter_distance) {
+
+	if (millimeter_distance < 90L) {
+		set_spots_text(numOfSpotsOccupied(), true);
+		switchRightSpotOccupied();
+	} else {
+		set_spots_text(numOfSpotsOccupied(), false);
+		switchRightSpotOccupied();
 	}
 }
 
-void loop()
-{
+void loop() {
+
 	lv_task_handler();
-	if (nextSensorRead < millis())
-	{
-		unsigned long millimeter_distance = (unsigned long)sensor.readRangeContinuousMillimeters();
+
+	if (nextSensorRead < millis()) {
+		unsigned long millimeter_distance = (unsigned long) sensor.readRangeContinuousMillimeters();
 
 		lv_label_set_text(label_distance_mm, (String(millimeter_distance, 10) + " mm").c_str());
 
-		if (isTopM5Stack)
-		{
-			loop_for_top_sensor(&millimeter_distance)
-		}
-		else
-		{
-			loop_for_side_sensor(&millimeter_distance)
+		if (isTopM5Stack) {
+			loop_for_top_sensor(millimeter_distance);
+		} else {
+			loop_for_side_sensor(millimeter_distance);
 		}
 
 		Serial.print(millimeter_distance);
-		if (sensor.timeoutOccurred())
-		{
+		if (sensor.timeoutOccurred()) {
 			Serial.print(" TIMEOUT");
 		}
 
