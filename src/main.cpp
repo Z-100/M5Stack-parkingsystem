@@ -16,12 +16,6 @@ static lv_disp_buf_t disp_buf;
 static lv_color_t buf[LV_HOR_RES_MAX * 10];
 uint32_t startTime, frame = 0; // For frames-per-second estimate
 
-
-//TODO Move to application state
-bool isTopM5Stack = true;
-long nextSensorRead = 0;
-
-
 void setup() {
 	set_up_m5stack_defaults();
 
@@ -77,11 +71,11 @@ void setup() {
 void loop_for_top_sensor(long millimeter_distance) {
 
 	if (millimeter_distance < 44L) {
-		set_spots_text(numOfSpotsOccupied(), true);1
+		set_spots_text(numOfSpotsOccupied(), true);
 		switchLeftSpotOccupied();
 	} else {
 		set_spots_text(numOfSpotsOccupied(), false);
-		switchLeftSpotOccupied();
+		switchLeftSpotUnOccupied();
 	}
 }
 
@@ -92,7 +86,7 @@ void loop_for_side_sensor(long millimeter_distance) {
 		switchRightSpotOccupied();
 	} else {
 		set_spots_text(numOfSpotsOccupied(), false);
-		switchRightSpotOccupied();
+		switchRightSpotUnOccupied();
 	}
 }
 
@@ -100,12 +94,12 @@ void loop() {
 
 	lv_task_handler();
 
-	if (nextSensorRead < millis()) {
+	if (nextSensorRead() < millis()) {
 		unsigned long millimeter_distance = (unsigned long) sensor.readRangeContinuousMillimeters();
 
 		lv_label_set_text(label_distance_mm, (String(millimeter_distance, 10) + " mm").c_str());
 
-		if (isTopM5Stack) {
+		if (isTopM5Stack()) {
 			loop_for_top_sensor(millimeter_distance);
 		} else {
 			loop_for_side_sensor(millimeter_distance);
@@ -117,7 +111,7 @@ void loop() {
 		}
 
 		Serial.println();
-		nextSensorRead = millis() + 500;
+		addToSensorRead(millis() + 500);
 	}
 	delay(5);
 }

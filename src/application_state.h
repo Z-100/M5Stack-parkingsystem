@@ -1,14 +1,24 @@
 #ifndef APPLICATION_STATE_H_
 #define APPLICATION_STATE_H_
 
+bool isTopM5Stack();
+
 void switchLeftSpotOccupied();
 
 void switchRightSpotOccupied();
 
-bool leftSpotOccupied();
+void switchLeftSpotUnOccupied();
 
-bool rightSpotOccupied();
+void switchRightSpotUnOccupied();
+
+bool isLeftSpotOccupied();
+
+bool isRightSpotOccupied();
 
 int numOfSpotsOccupied();
+
+long nextSensorRead();
+
+void addToSensorRead(long newSensorRead);
 
 #endif
