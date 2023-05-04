@@ -1,93 +1,74 @@
-#include <mosquitto.h>
+#include "requestclient.h"
 
-void on_connect(struct mosquitto *mosq, void *userdata, int result) {
-	if (result == 0) {
-		printf("MQTT connected\n");
-	}
-	else {
-		fprintf(stderr, "MQTT connection failed: %s\n", mosquitto_connack_string(result));
-	}
+// MQTT Information
+const char *mqtt_server = "cloud.tbz.ch";
+const char *clientId = "m1Stack";
+const char *username = "";
+const char *password = "";
+
+// WIFI Information
+const char *ssid = "LERNKUBE";
+const char *passphrase = "lernkube";
+
+// Vars
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+// Functions
+void setup_wifi()
+{
+    Serial.println("Connecting to: " + String(ssid));
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, passphrase);
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        Serial.println(".");
+    }
+
+    Serial.println("\nSuccess\n");
 }
 
-void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message) {
-	if (message->payloadlen) {
-		printf("%s %s\n", message->topic, (char *)message->payload);
-	}
+void mqtt_loop()
+{
+    if (client.state() != MQTT_CONNECTED)
+    {
+        mqtt_re_connect();
+    }
+    client.loop();
 }
 
-void publish_park_states(const char* address, int port, const char* topic, bool isOccupied, int parkSpace) {
-	struct mosquitto *mosq = nullptr;
-	int rc = 0;
-
-	mosquitto_lib_init();
-
-	mosq = mosquitto_new(nullptr, true, nullptr);
-	if (!mosq) {
-		fprintf(stderr, "Error: Out of memory.\n");
-		mosquitto_lib_cleanup();
-		return;
-	}
-
-	mosquitto_connect_callback_set(mosq, on_connect);
-	mosquitto_message_callback_set(mosq, on_message);
-
-	rc = mosquitto_connect(mosq, address, port, 60);
-	if (rc != MOSQ_ERR_SUCCESS) {
-		fprintf(stderr, "MQTT connection error: %s\n", mosquitto_strerror(rc));
-		mosquitto_destroy(mosq);
-		mosquitto_lib_cleanup();
-		return;
-	}
-
-	char payload[50];
-	snprintf(payload, sizeof(payload), "{\"isOccupied\":%s,\"parkSpace\":%d}", isOccupied ? "true" : "false", parkSpace);
-
-	rc = mosquitto_publish(mosq, nullptr, topic, strlen(payload), payload, 0, false);
-	if (rc != MOSQ_ERR_SUCCESS) {
-		fprintf(stderr, "MQTT publish error: %s\n", mosquitto_strerror(rc));
-	}
-
-	mosquitto_disconnect(mosq);
-	mosquitto_destroy(mosq);
-	mosquitto_lib_cleanup();
+void mqtt_init(MQTT_CALLBACK_SIGNATURE)
+{
+    client.setServer(mqtt_server, 1883);
+    client.setCallback(callback);
+    mqtt_re_connect();
 }
 
-void subscribe_park_states(const char* address, int port, const char* topic) {
-	struct mosquitto *mosq = nullptr;
-	int rc = 0;
+void mqtt_publish(const char *topic, const char *payload)
+{
+    client.publish(topic, payload);
+    Serial.println("requestclient#mqtt_publish: Published: " + String(payload) + " to " + String(topic));
+}
 
-	mosquitto_lib_init();
+void mqtt_re_connect()
+{
+    while (client.state() != MQTT_CONNECTED)
+    {
+        Serial.println("Attempting to connect to MQTT...");
 
-	mosq = mosquitto_new(nullptr, true, nullptr);
-	if (!mosq) {
-		fprintf(stderr, "Error: Out of memory.\n");
-		mosquitto_lib_cleanup();
-		return;
-	}
-
-	mosquitto_connect_callback_set(mosq, on_connect);
-	mosquitto_message_callback_set(mosq, on_message);
-
-	rc = mosquitto_connect(mosq, address, port, 60);
-	if (rc != MOSQ_ERR_SUCCESS) {
-		fprintf(stderr, "MQTT connection error: %s\n", mosquitto_strerror(rc));
-		mosquitto_destroy(mosq);
-		mosquitto_lib_cleanup();
-		return;
-	}
-
-	rc = mosquitto_subscribe(mosq, nullptr, topic, 0);
-	if (rc != MOSQ_ERR_SUCCESS) {
-		fprintf(stderr, "MQTT subscribe error: %s\n", mosquitto_strerror(rc));
-		mosquitto_disconnect(mosq);
-		mosquitto_destroy(mosq);
-		mosquitto_lib_cleanup();
-		return;
-	}
-
-	mosquitto_loop_forever(mosq, -1, 1);
-
-	mosquitto_disconnect(mosq);
-	mosquitto_destroy(mosq);
-	mosquitto_lib_cleanup();
+        String randomClientId = clientId + String("-" + random(0xffff), HEX);
+        if (client.connect(randomClientId.c_str()))
+        {
+            client.subscribe("garage/#");
+            Serial.println("MQTT connected");
+        }
+        else
+        {
+            Serial.println("failed, rc=");
+            Serial.print(client.state());
+            Serial.println("try again in 5 seconds");
+        }
+    }
 }

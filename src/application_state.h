@@ -3,6 +3,10 @@
 
 bool isTopM5Stack();
 
+bool hasLeftStateChanged(bool newState);
+
+bool hasRightStateChanged(bool newState);
+
 void switchLeftSpotOccupied();
 
 void switchRightSpotOccupied();

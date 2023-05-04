@@ -16,7 +16,28 @@ static lv_disp_buf_t disp_buf;
 static lv_color_t buf[LV_HOR_RES_MAX * 10];
 uint32_t startTime, frame = 0; // For frames-per-second estimate
 
-void setup() {
+void mqtt_callback(char *topic, byte *payload, unsigned int length)
+{
+	Serial.println("Message arrived " + String(topic));
+	auto topicS = String(topic);
+	String room = topicS.substring(0, topicS.lastIndexOf("/"));
+	room = room.substring(room.lastIndexOf("/") + 1);
+
+	// Parse Payload into String
+	auto *buf = (char *)malloc((sizeof(char) * (length + 1)));
+	memcpy(buf, payload, length);
+	buf[length] = '\0';
+	auto payloadS = String(buf);
+	payloadS.trim();
+
+	Serial.println(payloadS);
+
+	uint8_t begin;
+	uint8_t end;
+}
+
+void setup()
+{
 	set_up_m5stack_defaults();
 
 	Wire.begin();
@@ -24,10 +45,15 @@ void setup() {
 
 	// Program should not continue
 	// if no sensor was detected
-	if (!sensor.init()) {
+	if (!sensor.init())
+	{
 		Serial.println("Failed to detect and initialize sensor!");
-		while (1) {}
-	} else {
+		while (1)
+		{
+		}
+	}
+	else
+	{
 		sensor.startContinuous();
 	}
 
@@ -66,52 +92,72 @@ void setup() {
 	set_up_buttons(tab1);
 
 	set_up_labels(tab1);
+
+	// MQTT stuff
+	setup_wifi();
+  	mqtt_init(mqtt_callback);
 }
 
-void loop_for_top_sensor(long millimeter_distance) {
-
-	if (millimeter_distance < 44L) {
+void loop_for_top_sensor(long millimeter_distance)
+{
+	if (millimeter_distance < 44L)
+	{
 		set_spots_text(numOfSpotsOccupied(), true);
 		switchLeftSpotOccupied();
-	} else {
+		mqtt_publish("garagepp", "r-state: true");
+	}
+	else
+	{
 		set_spots_text(numOfSpotsOccupied(), false);
 		switchLeftSpotUnOccupied();
+		mqtt_publish("garagepp", "r-state: false");
 	}
 }
 
-void loop_for_side_sensor(long millimeter_distance) {
+void loop_for_side_sensor(long millimeter_distance)
+{
 
-	if (millimeter_distance < 90L) {
+	if (millimeter_distance < 90L)
+	{
 		set_spots_text(numOfSpotsOccupied(), true);
 		switchRightSpotOccupied();
-	} else {
+	}
+	else
+	{
 		set_spots_text(numOfSpotsOccupied(), false);
 		switchRightSpotUnOccupied();
 	}
 }
 
-void loop() {
-
+void loop()
+{
 	lv_task_handler();
 
-	if (nextSensorRead() < millis()) {
-		unsigned long millimeter_distance = (unsigned long) sensor.readRangeContinuousMillimeters();
+	if (nextSensorRead() < millis())
+	{
+		unsigned long millimeter_distance = (unsigned long)sensor.readRangeContinuousMillimeters();
 
 		lv_label_set_text(label_distance_mm, (String(millimeter_distance, 10) + " mm").c_str());
 
-		if (isTopM5Stack()) {
+		if (isTopM5Stack())
+		{
 			loop_for_top_sensor(millimeter_distance);
-		} else {
+		}
+		else
+		{
 			loop_for_side_sensor(millimeter_distance);
 		}
 
 		Serial.print(millimeter_distance);
-		if (sensor.timeoutOccurred()) {
+		if (sensor.timeoutOccurred())
+		{
 			Serial.print(" TIMEOUT");
 		}
 
 		Serial.println();
-		addToSensorRead(millis() + 500);
+		addToSensorRead(millis());
 	}
 	delay(5);
+
+	mqtt_loop();
 }

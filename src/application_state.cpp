@@ -14,6 +14,14 @@ bool isTopM5Stack() {
     return true;
 }
 
+bool hasLeftStateChanged(bool newState) {
+    return left_spot_occupied == newState;
+}
+
+bool hasRightStateChanged(bool newState) {
+    return right_spot_occupied == newState;
+}
+
 void switchLeftSpotOccupied() {
     left_spot_occupied = true;
 }
@@ -52,6 +60,6 @@ long nextSensorRead() {
     return next_sensor_read_time;
 }
 
-void addToSensorRead(long newSensorRead) {
-    next_sensor_read_time += newSensorRead;
+void addToSensorRead(long millies) {
+    next_sensor_read_time = millies + 500;
 }

@@ -1,14 +1,23 @@
 #ifndef REQUESTCLIENT_H_ /* Include guard */
 #define REQUESTCLIENT_H_
 
-#include <Arduino.h>
 #include <M5Core2.h>
 #include <Arduino.h>
-#include <lvgl.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <VL53L0X.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include "config.h"
 
 void send_park_state(bool isOccupied, int parkSpace);
 
-#endif /* SIDELED_H_ */
+
+void setup_wifi();
+
+void mqtt_loop();
+
+void mqtt_init(MQTT_CALLBACK_SIGNATURE);
+
+void mqtt_publish(const char* topic, const char* payload);
+
+void mqtt_re_connect();
+
+#endif
