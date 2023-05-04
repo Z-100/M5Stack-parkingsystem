@@ -100,17 +100,17 @@ void set_spots_text(int n_free_spots, bool free_spot_is_left)
 {
     if (n_free_spots == 0)
     {
-        lv_label_set_text(label_free_spot_count, free_spot_count_0);
-        lv_label_set_text(label_free_spot_direction, free_spot_direction_none);
+        lv_label_set_text(label_free_spot_count, free_spot_count_2);
+        lv_label_set_text(label_free_spot_direction, free_spot_direction_both);
     }
     else if (n_free_spots == 1)
     {
         lv_label_set_text(label_free_spot_count, free_spot_count_1);
-        lv_label_set_text(label_free_spot_direction, free_spot_is_left ? free_spot_direction_left : free_spot_direction_right);
+        lv_label_set_text(label_free_spot_direction, !free_spot_is_left ? free_spot_direction_left : free_spot_direction_right);
     }
     else if (n_free_spots == 2)
     {
-        lv_label_set_text(label_free_spot_count, free_spot_count_2);
-        lv_label_set_text(label_free_spot_direction, free_spot_direction_both);
+        lv_label_set_text(label_free_spot_count, free_spot_count_0);
+        lv_label_set_text(label_free_spot_direction, free_spot_direction_none);
     }
 }

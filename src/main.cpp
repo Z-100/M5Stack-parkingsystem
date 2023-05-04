@@ -18,22 +18,36 @@ uint32_t startTime, frame = 0; // For frames-per-second estimate
 
 void mqtt_callback(char *topic, byte *payload, unsigned int length)
 {
-	Serial.println("Message arrived " + String(topic));
-	auto topicS = String(topic);
-	String room = topicS.substring(0, topicS.lastIndexOf("/"));
-	room = room.substring(room.lastIndexOf("/") + 1);
+	Serial.println("main#mqtt_callback - Message received from: " + String(topic));
 
-	// Parse Payload into String
 	auto *buf = (char *)malloc((sizeof(char) * (length + 1)));
 	memcpy(buf, payload, length);
 	buf[length] = '\0';
 	auto payloadS = String(buf);
 	payloadS.trim();
 
-	Serial.println(payloadS);
+	Serial.println("main#mqtt_callback - Payload received: " + payloadS);
 
-	uint8_t begin;
-	uint8_t end;
+	// uint8_t begin;
+	// uint8_t end;
+
+	std::string payloadCStr = payloadS.c_str();
+	Serial.println("main#mqtt_callback - Payload converted");
+
+    size_t left_pos = payloadCStr.find(": ") + 2;
+    size_t right_pos = payloadCStr.find_last_of(": ") + 1;
+	Serial.println("main#mqtt_callback - Postitions extracted: {l:" + String(left_pos) + " r:" + String(right_pos));
+
+    int left = std::stoi(payloadCStr.substr(left_pos, 1));
+    int right = std::stoi(payloadCStr.substr(right_pos, 1));
+	Serial.println("main#mqtt_callback - Payload extracted: {l:" + String(left) + " r:" + String(right));
+
+    // Convert the numbers to booleans
+    bool left_free = left != 0;
+    bool right_free = right != 0;
+
+	Serial.println("main#mqtt_callback - Payload transformed: {l:" + String(left_free) + " r:" + String(right_free));
+	set_spots_text(left + right, left_free);
 }
 
 void setup()
@@ -102,16 +116,15 @@ void loop_for_top_sensor(long millimeter_distance)
 {
 	if (millimeter_distance < 44L)
 	{
-		set_spots_text(numOfSpotsOccupied(), true);
 		switchLeftSpotOccupied();
-		mqtt_publish("garagepp", "r-state: true");
 	}
 	else
 	{
-		set_spots_text(numOfSpotsOccupied(), false);
 		switchLeftSpotUnOccupied();
-		mqtt_publish("garagepp", "r-state: false");
 	}
+
+	String msg = "{\"isOccupied\": " + String(isLeftSpotOccupied()) + ", \"parkSpace\": \"left\" }";
+	mqtt_publish("garagepp/publish", msg.c_str());
 }
 
 void loop_for_side_sensor(long millimeter_distance)
@@ -119,14 +132,16 @@ void loop_for_side_sensor(long millimeter_distance)
 
 	if (millimeter_distance < 90L)
 	{
-		set_spots_text(numOfSpotsOccupied(), true);
 		switchRightSpotOccupied();
 	}
 	else
 	{
-		set_spots_text(numOfSpotsOccupied(), false);
 		switchRightSpotUnOccupied();
 	}
+
+
+	String msg = "{\"isOccupied\": " + String(isRightSpotOccupied()) + ", \"parkSpace\": \"right\" }";
+	mqtt_publish("garagepp/publish", msg.c_str());
 }
 
 void loop()
@@ -148,13 +163,12 @@ void loop()
 			loop_for_side_sensor(millimeter_distance);
 		}
 
-		Serial.print(millimeter_distance);
+		// Serial.println(millimeter_distance);
 		if (sensor.timeoutOccurred())
 		{
 			Serial.print(" TIMEOUT");
 		}
 
-		Serial.println();
 		addToSensorRead(millis());
 	}
 	delay(5);

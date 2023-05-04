@@ -61,7 +61,7 @@ void mqtt_re_connect()
         String randomClientId = clientId + String("-" + random(0xffff), HEX);
         if (client.connect(randomClientId.c_str()))
         {
-            client.subscribe("garage/#");
+            client.subscribe("garagepp/receive");
             Serial.println("MQTT connected");
         }
         else
