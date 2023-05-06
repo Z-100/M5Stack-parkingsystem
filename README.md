@@ -43,7 +43,7 @@ As seen above, two M5Stacks are involved in this system: One which just publishe
 information regarding the current `parkingState` of its parking space, and another
 one doing the exact same, whilst additionally receiving the latter JSON, evaluating
 it and then showing _the amount of free parking spaces left_ and _an arrow indicating
-which of the two spaces isn't taken yet.
+which of the two spaces isn't taken yet_.
 
 Information by the second M5Stack might look as follows*:
 
