@@ -11,7 +11,7 @@ long next_sensor_read_time = 0;
  * False:  The side sensor
 */
 bool isTopM5Stack() {
-    return true;
+    return false;
 }
 
 bool hasLeftStateChanged(bool newState) {

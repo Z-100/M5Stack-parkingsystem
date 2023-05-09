@@ -34,12 +34,8 @@ void mqtt_callback(char *topic, byte *payload, unsigned int length)
 	std::string payloadCStr = payloadS.c_str();
 	Serial.println("main#mqtt_callback - Payload converted");
 
-    size_t left_pos = payloadCStr.find(": ") + 2;
-    size_t right_pos = payloadCStr.find_last_of(": ") + 1;
-	Serial.println("main#mqtt_callback - Postitions extracted: {l:" + String(left_pos) + " r:" + String(right_pos));
-
-    int left = std::stoi(payloadCStr.substr(left_pos, 1));
-    int right = std::stoi(payloadCStr.substr(right_pos, 1));
+    int left = std::stoi(&payloadCStr[0]);
+    int right = std::stoi(&payloadCStr[2]);
 	Serial.println("main#mqtt_callback - Payload extracted: {l:" + String(left) + " r:" + String(right));
 
     // Convert the numbers to booleans
