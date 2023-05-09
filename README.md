@@ -30,11 +30,8 @@ The JSON sent to the MQTT-server
 
 The JSON received by the MQTT-server
 
-```json
-{
-    "right": 1,
-    "left": 0
-}
+```text
+0:1
 ```
 
 ## The system iteself
@@ -58,3 +55,16 @@ Next free parking space: <--        // Left one still free
 ```
 
 *simplified, due to StackOverflow-toxicity taking over and hating on any pictures used in .md files.
+
+## The test cases
+
+| The case                          | Expected behaviour                    | Actual behaviour                      | OK/NOK |
+|:----------------------------------|:--------------------------------------|:--------------------------------------|:------:|
+| M5Stack not connected to WIFI     | In endless loop where nothing happens | In endless loop where nothing happens |   OK   |
+| M5Stack not connected to MQTT     | M5Stack retries connection each 5 sec | M5Stack retries connection each 5 sec |   OK   |
+| Sensor not plugged in             | M5Stack won't start                   | M5Stack won't start                   |   OK   |
+| Working: L & R sensor range > 90  | 2 free spaces & displays "<-->"       | 2 free spaces & displays "<-->"       |   OK   |
+| Working: L sensor range < 44      | 1 free spaces & displays "-->"        | 1 free spaces & displays "-->"        |   OK   |
+| Working: R sensor range < 90      | 1 free spaces & displays "<--"        | 1 free spaces & displays "<--"        |   OK   |
+| Working: L & R sensor range < 44  | 0 free spaces & displays ":("         | 0 free spaces & displays ":("         |   OK   |
+
