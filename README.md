@@ -56,6 +56,14 @@ Next free parking space: <--        // Left one still free
 
 *simplified, due to StackOverflow-toxicity taking over and hating on any pictures used in .md files.
 
+## Anleitung
+1. Clone Repository
+2. Open it in VS Code
+3. Install the PlatformIO Extension
+4. Fill in the WiFi Inforrmawtion in requestclient.cpp:10
+5. Upload the Code to the M5StackCore2.
+	- One should have the boolean isTopM5Stack == true and the other one false in application_state.cpp:14
+
 ## The test cases
 
 | The case                          | Expected behaviour                    | Actual behaviour                      | OK/NOK |
