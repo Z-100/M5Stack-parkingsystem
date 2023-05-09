@@ -8,7 +8,7 @@ const char *password = "";
 
 // WIFI Information
 const char *ssid = "LERNKUBE";
-const char *passphrase = "lernkube";
+const char *passphrase = "l3rnk4b3";
 
 // Vars
 WiFiClient espClient;
